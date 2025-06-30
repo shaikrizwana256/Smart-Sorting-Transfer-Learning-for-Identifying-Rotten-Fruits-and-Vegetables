@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Sorting Prediction</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            max-width: 600px;
+            width: 90%;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-size: 2em;
+        }
+        input[type="file"] {
+            display: block;
+            margin: 0 auto 20px auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: calc(100% - 22px); /* Account for padding/border */
+        }
+        button {
+            padding: 12px 25px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #result {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 8px;
+            font-size: 1.2em;
+            color: #007bff;
+            word-wrap: break-word; /* Ensure long text wraps */
+        }
+        #previewImage {
+            max-width: 100%;
+            height: auto;
+            margin-top: 25px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .container {
+                padding: 20px;
+            }
+            h1 {
+                font-size: 1.5em;
+            }
+            button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Smart Sorting Prediction</h1>
+        <form id="upload-form" enctype="multipart/form-data">
+            <input type="file" id="imageInput" name="file" accept="image/*">
+            <button type="submit">Predict</button>
+        </form>
+        <div id="result"></div>
+        <img id="previewImage" src="#" alt="Image Preview" style="display: none;">
+    </div>
+
+    <script>
+        // Event listener to display image preview when a file is selected
+        document.getElementById('imageInput').addEventListener('change', function(event) {
+            const [file] = event.target.files;
+            if (file) {
+                const previewImage = document.getElementById('previewImage');
+                previewImage.src = URL.createObjectURL(file);
+                previewImage.style.display = 'block'; // Show the image element
+            }
+        });
+
+        // Event listener for form submission
+        document.getElementById('upload-form').addEventListener('submit', async function(event) {
+            event.preventDefault(); // Prevent the default form submission (page reload)
+
+            const formData = new FormData();
+            const imageFile = document.getElementById('imageInput').files[0];
+
+            if (!imageFile) {
+                document.getElementById('result').textContent = "Please select an image first.";
+                return; // Stop if no file is selected
+            }
+
+            formData.append('file', imageFile); // Append the selected file to form data
+
+            document.getElementById('result').textContent = "Predicting..."; // Show loading message
+
+            try {
+                // Send a POST request to the /predict endpoint of your Flask app
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    body: formData // Send the image file
+                });
+
+                const data = await response.json(); // Parse the JSON response from the server
+
+                if (response.ok) { // Check if the response status is successful (2xx)
+                    document.getElementById('result').textContent = `Prediction: ${data.predicted_class} (Confidence: ${data.confidence})`;
+                } else {
+                    // Handle server-side errors
+                    document.getElementById('result').textContent = `Error: ${data.error || 'Unknown error from server'}`;
+                }
+            } catch (error) {
+                // Handle network or other client-side errors
+                document.getElementById('result').textContent = `Network or processing error: ${error.message}`;
+                console.error('Fetch error:', error); // Log the error to console for debugging
+            }
+        });
+    </script>
+</body>
+</html>

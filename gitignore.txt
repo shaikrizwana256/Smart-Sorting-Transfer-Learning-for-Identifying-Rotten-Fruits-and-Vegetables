@@ -1,0 +1,12 @@
+
+# Ignore large dataset folder (if not using LFS for every image in dataset)
+dataset/
+# Ignore Python cache and environment files
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+# Ignore specific large files not tracked by LFS, if any
+# For example, if you had other zips or raw data:
+# *.zip
+# *.tar.gz
